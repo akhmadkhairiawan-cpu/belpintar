@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bel Pintar - Permainan Cepat Tepat</title>
+
+<style>
+:root {
+  --navy: #101d38;
+  --blue: #2563eb;
+  --yellow: #facc15;
+  --green: #16a34a;
+  --red: #dc2626;
+  --white: #ffffff;
+  --muted: #94a3b8;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #0b1429;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+}
+
+.app {
+  width: min(100%, 1200px);
+  aspect-ratio: 297 / 210;
+  min-height: 570px;
+  max-height: 95vh;
+  background: var(--navy);
+  border: 1px solid #334768;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 15px 50px #0007;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #334768;
+  min-height: 65px;
+}
+
+.logo { font-size: 20px; font-weight: 900; letter-spacing: 2px; color: var(--yellow); }
+
+.home-btn {
+  background: #263b5e; color: white; border: 1px solid #52688a;
+  padding: 10px 18px; border-radius: 9px; cursor: pointer; font-weight: bold;
+}
+.home-btn:hover { background: #3b5278; }
+
+.screen { display: none; flex: 1; padding: 24px; overflow-y: auto; }
+.screen.active { display: flex; flex-direction: column; }
+.center { justify-content: center; align-items: center; text-align: center; }
+
+h1 { font-size: clamp(30px, 5vw, 58px); margin-bottom: 12px; }
+h2 { font-size: clamp(22px, 3vw, 34px); margin-bottom: 25px; text-align: center; }
+.subtitle { color: #bac9e0; margin-bottom: 30px; font-size: 17px; }
+
+.primary-btn {
+  background: var(--yellow); color: #17233c; border: none; padding: 15px 45px;
+  border-radius: 12px; font-size: 19px; font-weight: 900; cursor: pointer; transition: .2s;
+}
+.primary-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+
+.secondary-btn {
+  background: #334b70; color: white; border: none; padding: 13px 30px;
+  border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer;
+}
+.danger-btn {
+  background: var(--red); color: white; border: none; padding: 13px 25px;
+  border-radius: 10px; font-weight: bold; cursor: pointer;
+}
+
+.form-box { width: min(100%, 450px); }
+.form-box label { display: block; text-align: left; margin: 15px 0 8px; color: #cbd5e1; font-weight: bold; }
+
+select, input {
+  width: 100%; padding: 15px; border-radius: 9px; border: 1px solid #506586;
+  background: #1b2d4c; color: white; font-size: 17px; outline: none;
+}
+input:focus, select:focus { border-color: var(--yellow); }
+
+.form-box .primary-btn { margin-top: 25px; width: 100%; }
+
+.player-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: min(100%, 650px); }
+.player-inputs label { display: block; text-align: left; margin: 0 0 8px; color: #cbd5e1; font-weight: bold; }
+.player-inputs + .primary-btn { margin-top: 25px; }
+
+.duration-options { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+.duration-option {
+  background: #1d3458; border: 2px solid #536986; padding: 22px 35px;
+  border-radius: 13px; color: white; cursor: pointer; font-size: 23px; font-weight: bold;
+}
+.duration-option.selected { border-color: var(--yellow); background: #65551b; color: var(--yellow); }
+
+#game { gap: 12px; padding: 14px 20px 18px; }
+.game-info { text-align: center; color: #a9bad2; font-size: 13px; }
+
+.arena {
+  flex: 1; min-height: 180px; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; text-align: center;
+  background: #162846; border: 1px solid #354c70; border-radius: 17px; padding: 15px;
+}
+.arena h2 { margin-bottom: 10px; color: var(--yellow); }
+
+#statusText { color: #bdcce1; font-size: 16px; margin-bottom: 10px; }
+#activeName { font-size: clamp(30px, 5vw, 58px); font-weight: 900; color: white; margin: 8px 0; overflow-wrap: anywhere; }
+#countdown { font-size: clamp(45px, 7vw, 75px); font-weight: 900; color: var(--yellow); line-height: 1.1; }
+#timerLabel { font-size: 13px; color: #a9bad2; margin-top: 5px; }
+
+.progress-track { width: min(80%, 450px); height: 9px; background: #334765; border-radius: 20px; margin-top: 17px; overflow: hidden; }
+#progress { height: 100%; width: 100%; background: var(--green); transition: width .15s linear; }
+
+.player-buttons { display: grid; gap: 12px; width: 100%; grid-template-columns: repeat(var(--players), minmax(0, 1fr)); }
+
+.player-btn {
+  border: none; border-radius: 13px; min-height: 110px; padding: 12px 8px; color: white;
+  cursor: pointer; font-size: 16px; font-weight: bold; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; gap: 8px; transition: .2s; overflow-wrap: anywhere;
+}
+.player-btn .bell { font-size: 30px; }
+.player-btn:active:not(:disabled) { transform: scale(.96); }
+.player-btn:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.8); }
+.player-btn.active-player { outline: 4px solid var(--yellow); outline-offset: 2px; opacity: 1; filter: none; }
+.player-btn.eliminated { background: #4b5563 !important; opacity: .5; }
+
+.middle-row { flex: 1; display: flex; align-items: center; gap: 12px; min-height: 0; }
+.middle-row .arena { flex: 1; align-self: stretch; }
+.reset-btn { flex: none; padding: 14px 16px; }
+.notice { color: #a9bad2; font-size: 12px; text-align: center; }
+
+/* Dialog dalam halaman (pengganti alert/confirm) */
+#dialog {
+  display: none; position: absolute; inset: 0; background: #000a;
+  align-items: center; justify-content: center; z-index: 10; padding: 20px;
+}
+#dialog.show { display: flex; }
+.dialog-box {
+  background: #1b2d4c; border: 1px solid #52688a; border-radius: 16px;
+  padding: 26px; width: min(100%, 420px); text-align: center;
+}
+.dialog-box p { font-size: 18px; margin-bottom: 22px; line-height: 1.4; }
+.dialog-actions { display: flex; gap: 12px; justify-content: center; }
+.dialog-actions button { min-width: 110px; }
+
+@media(max-width: 650px) {
+  .app { aspect-ratio: auto; min-height: 90vh; max-height: none; }
+  .player-inputs { grid-template-columns: 1fr; }
+  .player-btn { min-height: 85px; font-size: 12px; }
+  .player-btn .bell { font-size: 23px; }
+  .screen { padding: 15px; }
+}
+
+@media(max-height: 650px) {
+  .app { min-height: 95vh; }
+  header { padding: 9px 18px; min-height: 48px; }
+  #game { padding: 8px 14px; }
+  .player-btn { min-height: 75px; }
+  .arena { min-height: 135px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="logo">🔔 BEL PINTAR</div>
+  <button class="home-btn" onclick="goHome()">⌂ BERANDA</button>
+</header>
+
+<!-- HALAMAN BERANDA -->
+<section id="home" class="screen active center">
+  <div style="font-size:65px;margin-bottom:15px">🔔</div>
+  <h1>BEL PINTAR</h1>
+  <p class="subtitle">Permainan Cepat Tepat untuk Menguji Pengetahuanmu!</p>
+  <button class="primary-btn" onclick="showScreen('setup')">MULAI</button>
+</section>
+
+<!-- PENGATURAN PEMAIN -->
+<section id="setup" class="screen center">
+  <h2>PENGATURAN PEMAIN</h2>
+  <div class="form-box">
+    <label for="playerCount">Jumlah Peserta</label>
+    <select id="playerCount">
+      <option value="2">2 Pemain</option>
+      <option value="3">3 Pemain</option>
+      <option value="4">4 Pemain</option>
+    </select>
+    <button class="primary-btn" onclick="openNames()">LANJUT →</button>
+  </div>
+</section>
+
+<!-- DATA PESERTA -->
+<section id="names" class="screen center">
+  <h2>IDENTITAS PESERTA</h2>
+  <div class="player-inputs" id="nameFields"></div>
+  <button class="primary-btn" onclick="openDuration()">LANJUT →</button>
+</section>
+
+<!-- DURASI -->
+<section id="duration" class="screen center">
+  <h2>PENGATURAN WAKTU MENJAWAB</h2>
+  <p class="subtitle">Pilih durasi untuk setiap peserta</p>
+
+  <div class="duration-options">
+    <button class="duration-option selected" onclick="chooseDuration(5,this)">5 Detik</button>
+    <button class="duration-option" onclick="chooseDuration(10,this)">10 Detik</button>
+    <button class="duration-option" onclick="chooseDuration(15,this)">15 Detik</button>
+  </div>
+
+  <button class="primary-btn" style="margin-top:35px" onclick="startGame()">MULAI PERMAINAN</button>
+</section>
+
+<!-- ARENA PERMAINAN -->
+<section id="game" class="screen">
+
+  <div class="game-info">TEKAN BEL TERCEPAT UNTUK MENDAPATKAN KESEMPATAN MENJAWAB</div>
+
+  <div class="middle-row">
+  <button class="danger-btn reset-btn" onclick="resetRound()">↻ RESET</button>
+  <div class="arena">
+    <h2 id="statusText">SIAP UNTUK MENJAWAB?</h2>
+    <div id="activeName">BEL PINTAR</div>
+    <div id="countdown">--</div>
+    <div id="timerLabel">Tekan tombol bel ketika guru memberikan pertanyaan</div>
+    <div class="progress-track"><div id="progress"></div></div>
+  </div>
+  </div>
+
+  <p class="notice">
+    RESET: Aktifkan kembali semua peserta untuk pertanyaan baru.
+  </p>
+
+  <div class="player-buttons" id="playerButtons"></div>
+</section>
+
+<div id="dialog">
+  <div class="dialog-box">
+    <p id="dialogText"></p>
+    <div class="dialog-actions">
+      <button class="primary-btn" id="dialogYes" style="padding:12px 24px;font-size:16px">YA</button>
+      <button class="secondary-btn" id="dialogNo">BATAL</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+let players = [];
+let duration = 5;
+let currentPlayer = null;
+let remaining = 0;
+let timer = null;
+let roundLocked = false;
+let audioContext = null;
+
+// DIALOG DALAM HALAMAN
+function askConfirm(message, onYes) {
+  document.getElementById('dialogText').textContent = message;
+  const yes = document.getElementById('dialogYes');
+  const no = document.getElementById('dialogNo');
+  yes.textContent = 'YA';
+  no.style.display = '';
+  const close = () => document.getElementById('dialog').classList.remove('show');
+  yes.onclick = () => { close(); onYes(); };
+  no.onclick = close;
+  document.getElementById('dialog').classList.add('show');
+}
+
+function showNotice(message) {
+  document.getElementById('dialogText').textContent = message;
+  const yes = document.getElementById('dialogYes');
+  const no = document.getElementById('dialogNo');
+  yes.textContent = 'OKE';
+  no.style.display = 'none';
+  yes.onclick = () => document.getElementById('dialog').classList.remove('show');
+  document.getElementById('dialog').classList.add('show');
+}
+
+// NAVIGASI
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(screen => {
+    screen.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+}
+
+function stopTimer() {
+  if (timer !== null) {
+    clearInterval(timer);
+    timer = null;
+  }
+}
+
+function doGoHome() {
+  stopTimer();
+  players = [];
+  currentPlayer = null;
+  roundLocked = false;
+  showScreen('home');
+}
+
+function goHome() {
+  if (document.getElementById('game').classList.contains('active')) {
+    askConfirm('Kembali ke beranda? Pengaturan permainan akan diatur ulang.', doGoHome);
+    return;
+  }
+  doGoHome();
+}
+
+// INPUT JUMLAH DAN NAMA PEMAIN
+function openNames() {
+  const count = Number(document.getElementById('playerCount').value);
+  const container = document.getElementById('nameFields');
+
+  container.innerHTML = '';
+
+  for (let i = 0; i < count; i++) {
+    container.innerHTML += `
+      <div>
+        <label>Nama Peserta ${i + 1}</label>
+        <input type="text"
+          id="player${i}"
+          placeholder="Masukkan nama peserta ${i + 1}"
+          maxlength="30">
+      </div>
+    `;
+  }
+
+  showScreen('names');
+}
+
+function openDuration() {
+  const count = Number(document.getElementById('playerCount').value);
+  players = [];
+
+  for (let i = 0; i < count; i++) {
+    const value = document.getElementById('player' + i).value.trim();
+
+    players.push({
+      name: value || `Peserta ${i + 1}`,
+      color: ['#2563eb', '#db2777', '#0d9488', '#d97706'][i],
+      eliminated: false,
+      answered: false
+    });
+  }
+
+  showScreen('duration');
+}
+
+// PILIHAN DURASI
+function chooseDuration(value, button) {
+  duration = value;
+
+  document.querySelectorAll('.duration-option').forEach(btn => {
+    btn.classList.remove('selected');
+  });
+
+  button.classList.add('selected');
+}
+
+// MULAI PERMAINAN
+function startGame() {
+  players.forEach(player => {
+    player.eliminated = false;
+    player.answered = false;
+  });
+
+  currentPlayer = null;
+  roundLocked = false;
+  stopTimer();
+
+  showScreen('game');
+  renderPlayers();
+  showReady();
+}
+
+// TAMPILAN AWAL ARENA
+function showReady() {
+  document.getElementById('statusText').textContent = 'SIAP UNTUK MENJAWAB?';
+  document.getElementById('activeName').textContent = 'BEL PINTAR';
+  document.getElementById('countdown').textContent = '--';
+  document.getElementById('countdown').style.color = '#facc15';
+  document.getElementById('timerLabel').textContent =
+    'Tekan tombol bel ketika guru memberikan pertanyaan';
+
+  document.getElementById('progress').style.width = '100%';
+  document.getElementById('progress').style.background = '#16a34a';
+
+  renderPlayers();
+}
+
+// TAMPILKAN TOMBOL PESERTA
+function renderPlayers() {
+  const container = document.getElementById('playerButtons');
+
+  container.style.setProperty('--players', players.length);
+  container.innerHTML = '';
+
+  players.forEach((player, index) => {
+    const button = document.createElement('button');
+
+    button.className = 'player-btn';
+    button.style.background = player.color;
+
+    if (player.eliminated) {
+      button.classList.add('eliminated');
+    }
+
+    if (currentPlayer === index) {
+      button.classList.add('active-player');
+    }
+
+    button.disabled =
+      player.eliminated ||
+      (currentPlayer !== null && currentPlayer !== index);
+
+    button.innerHTML = `
+      <span class="bell">🔔</span>
+      <span>${escapeHTML(player.name)}</span>
+      <span style="font-size:11px">
+        ${player.eliminated ? 'TIDAK AKTIF' :
+          currentPlayer === index ? 'SEDANG MENJAWAB' : 'TEKAN BEL'}
+      </span>
+    `;
+
+    button.addEventListener('click', () => pressBell(index));
+    container.appendChild(button);
+  });
+}
+
+// AMANKAN TAMPILAN NAMA
+function escapeHTML(text) {
+  return text.replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  })[char]);
+}
+
+// SUARA BEL
+function playBell() {
+  try {
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) return;
+
+    if (!audioContext) {
+      audioContext = new AudioContextClass();
+    }
+
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      440, audioContext.currentTime + 0.3
+    );
+
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+      0.001, audioContext.currentTime + 0.5
+    );
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.5);
+
+  } catch (error) {
+    console.log('Audio tidak tersedia:', error);
+  }
+}
+
+// PESERTA MENEKAN BEL
+function pressBell(index) {
+  if (currentPlayer !== null || roundLocked) return;
+  if (players[index].eliminated) return;
+
+  currentPlayer = index;
+  remaining = duration;
+
+  playBell();
+
+  document.getElementById('statusText').textContent =
+    'MENDAPATKAN KESEMPATAN MENJAWAB!';
+
+  document.getElementById('activeName').textContent =
+    players[index].name;
+
+  document.getElementById('countdown').textContent = remaining;
+
+  document.getElementById('timerLabel').textContent =
+    'DETIK TERSISA UNTUK MENJAWAB';
+
+  document.getElementById('progress').style.width = '100%';
+
+  renderPlayers();
+  startTimer();
+}
+
+// HITUNG MUNDUR
+function startTimer() {
+  stopTimer();
+
+  const startedAt = Date.now();
+  const totalMilliseconds = duration * 1000;
+
+  timer = setInterval(() => {
+    const elapsed = Date.now() - startedAt;
+    const left = Math.max(0, totalMilliseconds - elapsed);
+
+    remaining = Math.ceil(left / 1000);
+
+    document.getElementById('countdown').textContent = remaining;
+
+    const percent = (left / totalMilliseconds) * 100;
+    const progress = document.getElementById('progress');
+
+    progress.style.width = percent + '%';
+
+    if (remaining <= 3) {
+      progress.style.background = '#dc2626';
+      document.getElementById('countdown').style.color = '#f87171';
+    } else {
+      progress.style.background = '#16a34a';
+      document.getElementById('countdown').style.color = '#facc15';
+    }
+
+    if (left <= 0) {
+      stopTimer();
+      eliminateCurrent('WAKTU HABIS!');
+    }
+
+  }, 50);
+}
+
+// GUGURKAN PESERTA
+function eliminateCurrent(message) {
+  if (currentPlayer === null) return;
+
+  stopTimer();
+
+  const index = currentPlayer;
+  players[index].eliminated = true;
+
+  currentPlayer = null;
+
+  document.getElementById('statusText').textContent = message;
+  document.getElementById('activeName').textContent =
+    players[index].name;
+
+  document.getElementById('countdown').textContent = '0';
+  document.getElementById('timerLabel').textContent =
+    'Peserta tidak dapat menjawab pada putaran ini';
+
+  document.getElementById('progress').style.width = '0%';
+  document.getElementById('progress').style.background = '#dc2626';
+
+  renderPlayers();
+  checkAllEliminated();
+}
+
+// SEMUA PESERTA GUGUR
+function checkAllEliminated() {
+  if (players.every(player => player.eliminated)) {
+    showAllEliminated();
+  }
+}
+
+function showAllEliminated() {
+  document.getElementById('statusText').textContent =
+    'SEMUA PESERTA TELAH MENDAPATKAN KESEMPATAN';
+
+  document.getElementById('activeName').textContent =
+    'PUTARAN SELESAI';
+
+  document.getElementById('countdown').textContent = '--';
+
+  document.getElementById('timerLabel').textContent =
+    'Tekan RESET untuk memulai pertanyaan berikutnya';
+
+  renderPlayers();
+}
+
+// RESET SEMUA PESERTA
+function resetRound() {
+  askConfirm('Aktifkan kembali semua tombol peserta untuk pertanyaan baru?', () => {
+    stopTimer();
+
+    players.forEach(player => {
+      player.eliminated = false;
+      player.answered = false;
+    });
+
+    currentPlayer = null;
+    roundLocked = false;
+
+    showReady();
+  });
+}
+</script>
+
+</body>
+</html>
